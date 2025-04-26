@@ -1,0 +1,135 @@
+/* Reset básico */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 10;
+    padding: 0;
+    background: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Contenedor principal */
+.container {
+    margin-top: 10px;
+    background: #fff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    text-align: center;
+}
+
+/* Logotipo */
+.logo {
+    margin-top: 10px;
+    width: 100px;
+    margin-bottom: 10px;
+}
+
+/* Título */
+h2 {
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+/* Grupo de entrada */
+.input-group {
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #555;
+    display: block;
+    margin-bottom: 5px;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+input:focus {
+    border-color: #008CBA;
+    outline: none;
+    box-shadow: 0px 0px 5px rgba(0, 140, 186, 0.5);
+}
+
+button, a {
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+    width: 100%; /* Hace que ambos botones tengan el mismo tamaño */
+    display: block; /* Asegura que ambos botones ocupen todo el ancho disponible */
+}
+
+.buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn-registrar,
+.btn-crear-cuenta {
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    /* Estilos comunes */
+    font-size: 1rem;
+    min-width: 180px;
+}
+
+.btn-registrar{
+    background: #2ecc71;
+    color: white;
+}
+
+.btn-crear-cuenta {
+    background: #3498db;
+    color: white;
+}
+
+.btn-registrar:hover {
+    background: #27ae60;
+}
+
+.btn-crear-cuenta:hover {
+    background: #2980b9;
+    color: white;
+}
+
+
+/* Estilo para el input de archivo */
+input[type="file"] {
+    border: none;
+    background: none;
+    padding: 5px;
+}
+
+/* Responsividad */
+@media (max-width: 450px) {
+    .container {
+        width: 90%;
+        padding: 20px;
+    }
+}
+

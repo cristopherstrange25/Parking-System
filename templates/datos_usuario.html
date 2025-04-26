@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datos del Usuario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='User/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Logotipo -->
+        <img src="{{ url_for('static', filename='User/logo.png') }}" alt="Logotipo Parking" class="logo">
+        <h1>Datos Registrados</h1>
+        
+        <div class="user-data-card">
+            <!-- Mostrar la foto si existe -->
+            {% if foto_data %}
+            <div class="user-photo">
+                <img src="data:image/jpeg;base64,{{ foto_data }}" alt="Foto del usuario" class="profile-image">
+            </div>
+            {% endif %}
+            
+            <div class="user-info">
+                <h2>Información del Usuario</h2>
+                <p><strong>Código:</strong> {{ codigo }}</p>
+                <p><strong>Nombre:</strong> {{ nombre }}</p>
+                <p><strong>Correo:</strong> {{ correo }}</p>
+
+                
+            </div>
+            
+            <div class="actions">
+                <a href="{{ url_for('parking') }}" class="btn-volver">Regresar</a>
+            </div>
+        </div>
+    </div>
+
+    
+</body>
+</html>

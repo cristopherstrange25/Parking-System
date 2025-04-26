@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Temporizador de Reserva</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2ecc71;
+            --danger: #e74c3c;
+            --background: #2c3e50;
+        }
+
+        body {
+            background: var(--background);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .timer-card {
+            background: #34495e;
+            border-radius: 20px;
+            padding: 2rem 3rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .time-display {
+            font-size: 4rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            color: var(--primary);
+        }
+
+        .progress-container {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            transition: width 1s linear;
+        }
+
+        .button-group {
+            display: grid;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-custom {
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: #27ae60;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .warning {
+            color: #f1c40f;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .status-message {
+            margin-top: 1.5rem;
+            font-size: 1.2rem;
+        }
+        /* Añadir estas transiciones */
+.time-display {
+    transition: color 0.5s ease;
+}
+
+.progress-bar {
+    transition: width 1s linear, background-color 0.5s ease;
+}
+
+/* Estado crítico */
+.critical {
+    color: #e74c3c;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+.logo {
+    margin-top: 10px;
+    width: 100px;
+    margin-bottom: 10px;
+}
+    .logotipo {
+        text-align: center;
+        padding: 0rem;
+        background: #34495e;
+        border-radius: 8px;
+        }
+        .alert-success {
+    background: #2ecc71;
+    color: white;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: left;
+}
+
+.alert-success hr {
+    border-color: rgba(255,255,255,0.3);
+    margin: 10px 0;
+}
+
+.alert-success h4 {
+    margin-bottom: 10px;
+    font-weight: 300;
+}
+
+.alert-success p {
+    margin-bottom: 5px;
+}
+    </style>
+</head>
+<body>
+    
+    <div class="timer-card">
+        <div class="logotipo">    
+            <img src="{{ url_for('static', filename='Login/Logo.png') }}" alt="Logotipo Parking" class="logo">
+        </div>
+        <h2>Temporizador de Reserva</h2>
+        <div class="time-display" id="timer">15:00</div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+        <div class="button-group">
+            <button class="btn-custom btn-primary" onclick="confirmArrival()">¡Ya llegué!</button>
+            <button class="btn-custom btn-danger" onclick="cancelReservation()">Cancelar Reserva</button>
+        </div>
+        <div class="warning" id="warning-message"></div>
+        <div class="status-message" id="status-message"></div>
+        
+    </div>
+
+    <script>
+        let timer;
+        let endTime;
+        const totalTime = 900; // 15 minutos en segundos
+        let remainingTime = totalTime;
+        const timerElement = document.getElementById('timer');
+        const progressBar = document.getElementById('progress');
+        const warningMessage = document.getElementById('warning-message');
+        const statusMessage = document.getElementById('status-message');
+
+        // Obtener hora de reserva del servidor
+function fetchReservationTime() {
+        fetch('/get-reservation-time')
+        .then(response => response.json())
+        .then(data => {
+            if(data.reservation_end) { // Cambiar reservation_time por reservation_end
+                endTime = new Date(data.reservation_end); // Usar directamente la fecha final del servidor
+                startTimer();
+            } else {
+                statusMessage.textContent = "No tienes reservaciones activas";
+                disableButtons();
+            }
+        });
+}
+
+function updateTimer() {
+    const now = new Date();
+    remainingTime = Math.max(0, Math.floor((endTime - now) / 1000));
+
+    console.log("Tiempo restante (segundos):", remainingTime); // <-- Aquí
+
+    if(remainingTime <= 0) {
+        clearInterval(timer);
+        timerElement.style.color = getComputedStyle(document.documentElement).getPropertyValue('--danger');
+        statusMessage.textContent = "Tiempo agotado. Reserva cancelada.";
+        releaseParkingSpot();
+        disableButtons();
+        return;
+    }
+
+    const minutes = Math.floor(remainingTime / 60);
+    const seconds = remainingTime % 60;
+    timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+    const progressWidth = (remainingTime / totalTime) * 100;
+    progressBar.style.width = `${progressWidth}%`;
+
+    if(remainingTime <= 300) {
+        timerElement.style.color = getComputedStyle(document.documentElement).getPropertyValue('--danger');
+        warningMessage.textContent = "¡Apúrate! Tu reserva está por expirar";
+    }
+}
+
+
+function startTimer() {
+    console.log("Iniciando temporizador..."); // <-- Aquí
+    clearInterval(timer);
+    timer = setInterval(updateTimer, 1000);
+    updateTimer();
+}
+
+
+async function confirmArrival() {
+    try {
+        const response = await fetch('/confirm-arrival', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Formatear hora de liberación
+        const horaLiberacion = new Date(data.hora_liberacion);
+        const opcionesHora = { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            timeZone: 'America/Mexico_City'
+        };
+        
+        // Calcular tiempo restante
+        const minutos = Math.floor(data.tiempo_restante / 60);
+        const segundos = data.tiempo_restante % 60;
+        
+        statusMessage.innerHTML = `
+            <div class="alert alert-success">
+                <h4>¡Bienvenido ${data.nombre}!</h4>
+                <p>Su lugar está confirmado</p>
+                <hr>
+                <p class="mb-0">Hora de liberación: ${horaLiberacion.toLocaleTimeString('es-MX', opcionesHora)}</p>
+
+            </div>
+            <div class="actions">
+            <a href="{{ url_for('reserva') }}" class="btn-volver">continuar</a>
+            </div>
+        `;
+        
+        clearInterval(timer);
+        disableButtons();
+    } catch (error) {
+        console.error('Error al confirmar llegada:', error);
+        alert("Error al confirmar llegada: " + error.message);
+    }
+}
+        
+async function cancelReservation() {
+            if(confirm("¿Estás seguro de cancelar la reserva?")) {
+                const response = await fetch('/cancel-reservation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if(response.ok) {
+                    window.location.href = '/parking'; 
+                }
+            }
+        }
+
+function disableButtons() {
+            document.querySelectorAll('.btn-custom').forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+            });
+        }
+
+function releaseParkingSpot() {
+            fetch('/release-spot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+
+        // Inicializar al cargar
+        fetchReservationTime();
+
+        // Prevenir cierre de pestaña/página
+        window.onbeforeunload = function(e) {
+            if(remainingTime > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+    </script>
+</body>
+</html>

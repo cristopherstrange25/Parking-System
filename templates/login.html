@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='Login/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Logotipo -->
+        <img src="{{ url_for('static', filename='Login/Logo.png') }}" alt="Logotipo Parking" class="logo">
+        
+        <!-- Mostrar mensajes flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'danger' %}
+                        <script>
+                            alert("{{ message }}");
+                        </script>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Formulario de Login -->
+        <form method="POST" action="{{ url_for('login') }}">
+            <h2>LOGIN</h2>
+
+            <!-- Correo Electrónico -->
+            <label for="correo">CORREO ELECTRÓNICO</label>
+            <input type="email" id="correo" name="correo" required>
+
+            <!-- Contraseña -->
+            <label for="password">PASSWORD</label>
+            <input type="password" id="password" name="password" required>
+
+            <!-- Botones -->
+            <div class="buttons">
+                <button type="submit" class="btn-ingresar">INGRESAR</button>
+                <a href="{{ url_for('register') }}" class="btn-crear-cuenta">
+                    CREAR CUENTA
+                </a>
+                <a href="{{ url_for('recuperar_password') }}" class="btn-crear-cuenta">
+                    RECUPERAR
+                </a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

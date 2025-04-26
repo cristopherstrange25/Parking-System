@@ -1,0 +1,135 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    text-align: center;
+}
+
+.logo {
+    margin-top: 10px;
+    width: 120px; /* Tamaño más grande para el logotipo */
+    margin-bottom: 5px;
+}
+
+h2 {
+    margin-bottom: 25px;
+    color: #333;
+    font-size: 24px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #555;
+    text-align: left;
+    font-size: 14px;
+}
+
+input {
+    margin-bottom: 20px;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.flash-messages {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.alert {
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.alert-success {
+    color: #3c763d;
+    background-color: #dff0d8;
+    border-color: #d6e9c6;
+}
+
+.alert-danger {
+    color: #a94442;
+    background-color: #f2dede;
+    border-color: #ebccd1;
+}
+
+#nueva-password-container {
+    transition: all 0.3s ease;
+}
+
+button, a {
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+    width: 100%; /* Hace que ambos botones tengan el mismo tamaño */
+    display: block; /* Asegura que ambos botones ocupen todo el ancho disponible */
+}
+
+.buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn-ingresar,
+.btn-crear-cuenta {
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    /* Estilos comunes */
+    font-size: 1rem;
+    min-width: 180px;
+}
+
+.btn-ingresar {
+    background: #2ecc71;
+    color: white;
+}
+
+.btn-crear-cuenta {
+    background: #3498db;
+    color: white;
+}
+
+.btn-ingresar:hover {
+    background: #27ae60;
+}
+
+.btn-crear-cuenta:hover {
+    background: #2980b9;
+    color: white;
+}

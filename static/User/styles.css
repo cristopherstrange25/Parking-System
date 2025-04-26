@@ -1,0 +1,132 @@
+/* Reset básico */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 10;
+    padding: 0;
+    background: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Contenedor principal */
+.container {
+    margin-top: 10px;
+    background: #fff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    text-align: center;
+}
+
+/* Logotipo */
+.logo {
+    margin-top: 10px;
+    width: 100px;
+    margin-bottom: 10px;
+}
+
+/* Título */
+h2 {
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+/* Grupo de entrada */
+.input-group {
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #555;
+    display: block;
+    margin-bottom: 5px;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+input:focus {
+    border-color: #008CBA;
+    outline: none;
+    box-shadow: 0px 0px 5px rgba(0, 140, 186, 0.5);
+}
+
+/* Botones */
+.buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+button {
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: 0.3s ease;
+    width: 100%;
+}
+
+/* Botón de Ingresar (Verde) */
+.btn-registrar {
+    background-color: #4CAF50;
+    color: #fff;
+}
+
+.btn-registrar:hover {
+    background-color: #45a049;
+}
+
+/* Botón de Crear Cuenta (Azul) */
+.btn-volver {
+    background-color: #008CBA;
+    color: #fff;
+}
+
+.btn-volver:hover {
+    background-color: #007B9E;
+}
+
+/* Estilo para el input de archivo */
+input[type="file"] {
+    border: none;
+    background: none;
+    padding: 5px;
+}
+
+/* Responsividad */
+@media (max-width: 450px) {
+    .container {
+        width: 90%;
+        padding: 20px;
+    }
+}
+.user-photo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.profile-image {
+    width: 150px;  /* Ajusta el ancho */
+    height: 150px; /* Ajusta la altura */
+    object-fit: cover; /* Ajusta la imagen sin deformarla */
+    border-radius: 50%; /* Hace que la imagen sea circular */
+    border: 3px solid #333; /* Agrega un borde */
+}

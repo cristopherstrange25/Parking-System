@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking</title>
+    <link rel="stylesheet" href="static/Info/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="static/Info/Logo.png" alt="Parking Logo">
+        </div>
+        
+        <div class="info">
+            <p><strong>Información</strong></p>
+            <p><strong>Fecha actual:</strong> {{ fecha }}</p>
+            <p><strong>Ubicación:</strong> <span>{{ ubicacion }}</span></p>
+        </div>
+        
+        <div class="input-container">
+            <label for="hora-inicio">Hora Inicial</label>
+            <input type="time" id="hora-inicio" placeholder="Hora Inicial">
+            <label for="hora-fin">Hora Final</label>
+            <input type="time" id="hora-fin" placeholder="Hora Final">
+        </div>
+        
+        <!-- Aquí se mostrará el precio calculado automáticamente -->
+        <div class="price">
+            <p><strong>Precio:</strong> <span id="precio">00.00</span></p>
+        </div>
+        
+        <div class="buttons">
+            <button id="btn-tarjeta" onclick="redirectToPayment('credito')">Tarjeta de Crédito</button>
+            <button id="btn-paypal" onclick="redirectToPayment('paypal')">PayPal</button>
+            <button id="btn-debito" onclick="redirectToPayment('debito')">Tarjeta de Débito</button>
+        </div>
+        
+        <div id="form-pago" style="display:none;">
+            <!-- ... (mantener mismo formulario de pago) ... -->
+        </div>
+    </div>
+
+    <script>
+        function redirectToPayment(metodo) {
+        const horaInicio = document.getElementById('hora-inicio').value;
+        const horaFin = document.getElementById('hora-fin').value;
+        const precioTotal = document.getElementById('precio').textContent.replace('$',''); // Quitar el símbolo $
+        
+        if (!horaInicio || !horaFin) {
+            alert('Por favor ingresa las horas de inicio y fin.');
+            return;
+        }
+        
+        // Agregar el total a los parámetros
+        window.location.href = `/${metodo}?hora_inicio=${horaInicio}&hora_fin=${horaFin}&total=${precioTotal}`;
+    }
+
+        function procesarPago(metodo) {
+    const horaInicio = document.getElementById('hora-inicio').value;
+    const horaFin = document.getElementById('hora-fin').value;
+
+    if (!horaInicio || !horaFin) {
+        alert('Por favor ingresa las horas de inicio y fin.');
+        return;
+    }
+
+    fetch('/procesar-pago', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            metodo_pago: metodo,
+            hora_inicio: horaInicio,
+            hora_fin: horaFin
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Pago procesado exitosamente!');
+            window.location.href = '/parking'; // Redirigir al estacionamiento
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al procesar el pago');
+    });
+}
+        // Función para calcular y mostrar el precio automáticamente
+        function calcularPrecio() {
+            const horaInicio = document.getElementById('hora-inicio').value;
+            const horaFin = document.getElementById('hora-fin').value;
+            const precioElemento = document.getElementById('precio');
+            
+            if (!horaInicio || !horaFin) {
+                precioElemento.textContent = '00.00';
+                return;
+            }
+
+            // Convertir a objetos Date
+            const inicio = new Date(`1970-01-01T${horaInicio}`);
+            const fin = new Date(`1970-01-01T${horaFin}`);
+            
+            // Calcular diferencia en milisegundos
+            let diferencia = fin - inicio;
+            
+            // Manejar horarios nocturnos
+            if (diferencia < 0) {
+                diferencia += 24 * 60 * 60 * 1000; // Sumar 24 horas
+            }
+            
+            // Calcular horas redondeadas hacia arriba
+            const horas = Math.ceil(diferencia / (1000 * 60 * 60));
+            const precioTotal = (horas * 15).toFixed(2);
+            
+            // Actualizar el precio en el HTML
+            precioElemento.textContent = `$${precioTotal}`;
+        }
+
+        // Event listeners para cambios en los inputs
+        document.getElementById('hora-inicio').addEventListener('input', calcularPrecio);
+        document.getElementById('hora-fin').addEventListener('input', calcularPrecio);
+
+        // Calcular precio inicial al cargar
+        window.addEventListener('DOMContentLoaded', calcularPrecio);
+    </script>
+</body>
+</html>

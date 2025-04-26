@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprobante de Pago</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* Mantenemos los estilos originales y agregamos mejoras */
+        body { background-color: #f0f3f5; }
+        .receipt {
+            max-width: 680px;
+            margin: 2rem auto;
+            padding: 2.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .qr-container {
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 2rem auto;
+            max-width: 240px;
+        }
+        .divider {
+            border-top: 2px dashed #dee2e6;
+            margin: 1.5rem 0;
+        }
+        .whatsapp-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Datos ocultos para PDF -->
+    <div id="pago-data"
+        data-fecha="{{ pago.fecha_pago.strftime('%d/%m/%Y %H:%M') }}"
+        data-nombre="{{ usuario.nombre }}"
+        data-correo="{{ usuario.correo }}"
+        data-ubicacion="{{ estacionamiento.ubicacion }}"
+        data-hora-inicio="{{ estacionamiento.hora_reservacion.strftime('%H:%M') }}"
+        data-hora-fin="{{ estacionamiento.hora_liberacion.strftime('%H:%M') }}"
+        data-metodo-pago="{{ pago.metodo_pago }}"
+        data-total="{{ pago.monto_total }}"
+        data-qr-code="{{ qr_code }}">
+    </div>
+
+    <div class="container">
+        <div class="receipt">
+            <div class="text-center mb-4">
+                <img src="{{ url_for('static', filename='Login/Logo.png') }}" alt="Logo" style="height: 80px;">
+                <h2 class="mt-3 fw-bold text-primary">Comprobante de Pago</h2>
+                <p class="text-muted">Sistema de Estacionamiento Inteligente</p>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <p><strong>Fecha y Hora:</strong><br>{{ pago.fecha_pago.strftime('%d/%m/%Y %H:%M') }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Ubicación:</strong><br>{{ estacionamiento.ubicacion }}</p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <h5 class="fw-bold mb-3">Información del Usuario</h5>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <p><strong>Nombre:</strong><br>{{ usuario.nombre }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Correo:</strong><br>{{ usuario.correo }}</p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <h5 class="fw-bold mb-3">Detalles del Estacionamiento</h5>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <p><strong>Horario:</strong><br>
+                    {{ estacionamiento.hora_reservacion.strftime('%H:%M') }} - 
+                    {{ estacionamiento.hora_liberacion.strftime('%H:%M') }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Duración:</strong><br>
+                    {{ (estacionamiento.hora_liberacion - estacionamiento.hora_reservacion).seconds // 3600 }} horas</p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <h5 class="fw-bold mb-3">Detalles del Pago</h5>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <p><strong>Método de Pago:</strong><br>{{ pago.metodo_pago }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Total Pagado:</strong><br>${{ "%.2f"|format(pago.monto_total) }}</p>
+                </div>
+            </div>
+
+            <div class="qr-container text-center">
+                <p class="small text-muted mb-3">Código de verificación</p>
+                <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="img-fluid">
+            </div>
+
+            <div class="whatsapp-container">
+                <p class="text-muted small">Enviar comprobante por WhatsApp:</p>
+                <input type="tel" id="phoneNumber" class="form-control mb-2" placeholder="+521234567890">
+                <button onclick="enviarPDFporWhatsApp()" class="btn btn-success w-100">
+                    Enviar por WhatsApp
+                </button>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{{ url_for('time') }}" class="btn btn-primary">Continuar</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función mejorada para generar PDF
+        async function generarPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const pagoData = document.getElementById('pago-data').dataset;
+            const margin = 15;
+            let yPos = margin;
+
+            // Logo
+           // const logoImg = new Image();
+          //  logoImg.src = "{{ url_for('static', filename='Login/Logo.png') }}";
+           // doc.addImage(logoImg, 'PNG', 80, yPos, 50, 50);
+          //  yPos += 60;
+
+            // Encabezado
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Comprobante de Pago", 105, yPos, { align: 'center' });
+            yPos += 10;
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            doc.text("Sistema de Estacionamiento Inteligente", 105, yPos, { align: 'center' });
+            yPos += 15;
+
+            // Línea divisoria
+            doc.setDrawColor(200);
+            doc.line(margin, yPos, 200 - margin, yPos);
+            yPos += 10;
+
+            // Detalles principales
+            const detalles = [
+                `Fecha: ${pagoData.fecha}`,
+                `Ubicación: ${pagoData.ubicacion}`,
+                `Horario: ${pagoData.horaInicio} - ${pagoData.horaFin}`
+            ];
+
+            detalles.forEach((d, i) => {
+                doc.text(d, margin, yPos + (i * 7));
+            });
+            yPos += (detalles.length * 7) + 10;
+
+            // Información del usuario
+            doc.setFont('helvetica', 'bold');
+            doc.text("Información del Usuario:", margin, yPos);
+            yPos += 7;
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Nombre: ${pagoData.nombre}`, margin, yPos);
+            doc.text(`Correo: ${pagoData.correo}`, margin, yPos + 7);
+            yPos += 20;
+
+            // Detalles de pago
+            doc.setFont('helvetica', 'bold');
+            doc.text("Detalles del Pago:", margin, yPos);
+            yPos += 7;
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Método: ${pagoData.metodoPago}`, margin, yPos);
+            doc.text(`Total: $${parseFloat(pagoData.total).toFixed(2)}`, margin, yPos + 7);
+            yPos += 20;
+
+            // QR Code
+            const qrImg = new Image();
+            qrImg.src = "data:image/png;base64,{{ qr_code }}";
+            doc.addImage(qrImg, 'PNG', 80, yPos, 50, 50);
+            yPos += 60;
+
+            // Pie de página
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text("Gracias por utilizar nuestro servicio de estacionamiento", margin, yPos);
+
+            return doc.output('blob');
+        }
+
+        // Función para enviar por WhatsApp
+        async function enviarPDFporWhatsApp() {
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            
+            try {
+                if (!/^\+521\d{10}$/.test(phoneNumber)) {
+                    throw new Error('Formato inválido. Ejemplo: +5215512345678');
+                }
+
+                const pdfBlob = await generarPDF();
+                const pdfUrl = await uploadPDF(pdfBlob);
+
+                const mensaje = `🚗 *Comprobante de Estacionamiento* 🅿️\n\n` +
+                                `Hola, aquí tienes tu comprobante:\n` +
+                                `📍 Ubicación: ${document.getElementById('pago-data').dataset.ubicacion}\n` +
+                                `🕒 Horario: ${document.getElementById('pago-data').dataset.horaInicio} - ${document.getElementById('pago-data').dataset.horaFin}\n` +
+                                `💳 Total: $${parseFloat(document.getElementById('pago-data').dataset.total).toFixed(2)}\n\n` +
+                                `Descarga tu comprobante completo:\n${pdfUrl}`;
+
+                const response = await fetch('/enviar-whatsapp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone: phoneNumber,
+                        message: mensaje
+                    })
+                });
+
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error);
+
+                alert('✅ Comprobante enviado correctamente');
+                window.open(pdfUrl, '_blank');
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert(`❌ Error: ${error.message}`);
+            }
+        }
+
+        // Función para subir PDF (mantenida de tu versión original)
+        async function uploadPDF(pdfBlob) {
+            const formData = new FormData();
+            formData.append('pdf', pdfBlob, 'comprobante.pdf');
+            
+            try {
+                const response = await fetch('/upload-pdf', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error);
+                return result.url;
+                
+            } catch (error) {
+                console.error('Error en uploadPDF:', error);
+                throw error;
+            }
+        }
+    </script>
+</body>
+</html>

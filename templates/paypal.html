@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Pago</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #d1d1d1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 900px;
+            background-color: #e6e6e6;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .paypal {
+            flex: 1;
+            text-align: center;
+        }
+
+        .paypal img {
+            width: 200px;
+            border-radius: 20px;
+        }
+
+        .form-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centra el contenido horizontalmente */
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .header img {
+            width: 100px;
+        }
+
+        .header h2 {
+            font-size: 24px;
+            color: #333;
+            margin: 0;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        form {
+            width: 100%;
+        }
+
+        .form-group {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .form-group input {
+            width: 95%;
+            padding: 10px;
+            border: 1px solid #aaa;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .form-row input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #aaa;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 30px;
+            border: none;
+            background-color: #666;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        h2 {
+            text-align: center; /* Centra el texto "Paypal" */
+            width: 100%; /* Ocupa todo el ancho disponible */
+            margin-bottom: 20px; /* Espacio inferior */
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px; /* Mueve los botones hacia abajo */
+            margin-bottom: 20px;
+            
+        }
+        .button-container button {
+            padding: 15px;
+            margin: 0 10px; /* Espaciado entre los botones */
+            background-color: rgba(31, 73, 189, 0.384);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 150px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="paypal">
+            <img src="{{ url_for('static', filename='paypal/paypal.png') }}" alt="Debito Card">
+        </div>
+        <div class="form-section">
+            <div class="header">
+                <img src="{{ url_for('static', filename='paypal/Logo.png') }}" alt="Logotipo Parking" class="logo">
+            </div>
+            <h2>Paypal</h2> <!-- Mueve el h2 fuera del formulario -->
+            <form action="/procesar-pago2" method="POST">
+                <input type="hidden" name="metodo_pago" value="Paypal">
+                <input type="hidden" name="hora_inicio" value="{{ hora_inicio }}">
+                <input type="hidden" name="hora_fin" value="{{ hora_fin }}">
+                <input type="hidden" name="total" value="{{ total }}">
+            
+                <div class="form-group">
+                    <input type="text" name="nombre_paypal" placeholder="Nombre del Titular" required
+                           pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+" 
+                           title="El nombre solo debe contener letras y espacios">
+                </div>
+            
+                <div class="form-group">
+                    <input type="email" name="correo_paypal" placeholder="Correo Electrónico" required
+                           pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                           title="Ingresa un correo electrónico válido">
+                </div>
+            
+                <div class="button-container">
+                    <button type="submit">Pagar</button>
+                    <a href="{{ url_for('info') }}">
+                        <button type="button">Volver</button>
+                    </a>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</body>
+</html>

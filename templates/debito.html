@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Pago</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='debit/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="credit-card">
+            <img src="{{ url_for('static', filename='debit/debito.png') }}" alt="Debito Card">
+        </div>
+        <div class="form-section">
+            <div class="header">
+                <img src="{{ url_for('static', filename='debit/Logo.png') }}" alt="Logotipo Parking" class="logo">
+                <div><h2></h2></div>
+
+            </div>
+            <form action="/procesar-pago" method="POST">
+                <h3>Tarjeta de Débito</h3>
+            
+                <input type="hidden" name="metodo_pago" value="Debito">
+                <input type="hidden" name="hora_inicio" value="{{ hora_inicio }}">
+                <input type="hidden" name="hora_fin" value="{{ hora_fin }}">
+                <input type="hidden" name="total" value="{{ total }}">
+            
+                <div class="form-group">
+                    <input type="text" name="nombre_titular" placeholder="Nombre del Titular" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" name="numero_tarjeta" placeholder="Número de Tarjeta" required 
+                           pattern="\d{12}" title="Debe contener exactamente 12 dígitos numéricos">
+                </div>
+                <div class="form-row">
+                    <input type="text" name="fecha_exp" placeholder="Fecha Exp. (MM/YY)" required 
+                           pattern="(0[1-9]|1[0-2])\/\d{2}" title="Formato válido: MM/YY">
+                    <input type="text" name="codigo_seguridad" placeholder="C. Seguridad" required 
+                           pattern="\d{3}" title="Debe contener exactamente 3 dígitos">
+                </div>
+                <div><h2></h2></div>
+                <div class="button-container">
+                    <button type="submit">Pagar</button>
+                    <a href="{{ url_for('info') }}">
+                        <button type="button">Volver</button>
+                    </a>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</body>
+</html>

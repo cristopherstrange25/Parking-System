@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Estacionamiento</title>
+    <style>
+        /* Tus estilos CSS existentes */
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .parking-lot { display: grid; grid-template-columns: repeat(10, 60px); gap: 10px; justify-content: center; margin-top: 20px; }
+        .spot { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border: 2px solid black; cursor: pointer; font-weight: bold; position: relative; }
+        .available { background-color: lightgreen; }
+        .reserved { background-color: yellow; }
+        .occupied { background-color: red; color: white; }
+        .disabled { background-color: blue; color: white; }
+        .temporarily-closed { background-color: gray; color: white; }
+        .executive { background-color: purple; color: white; }
+        .tooltip { 
+            visibility: hidden; 
+            background-color: black; 
+            color: white; 
+            text-align: center; 
+            padding: 5px; 
+            border-radius: 5px; 
+            position: absolute; 
+            top: -30px; 
+            left: 50%; 
+            transform: translateX(-50%);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .spot:hover .tooltip { visibility: visible; }
+        .legend { display: flex; justify-content: center; margin-top: 20px; gap: 15px; }
+        .legend div { display: flex; align-items: center; }
+        .legend-color { width: 20px; height: 20px; border: 2px solid black; margin-right: 5px; }
+        .totals { display: flex; justify-content: center; margin-top: 20px; gap: 20px; font-weight: bold; }
+
+        /* Contenedor para los botones */
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex-grow: 1;
+            border-top: 10px;
+        }
+        /* Estilo del botón de perfil en la parte superior */
+        .profile-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+ /* Contenedor para los botones de reservar y salir en horizontal */
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px; /* Mueve los botones hacia abajo */
+            margin-bottom: 20px;
+            
+        }
+        .button-container button {
+            padding: 15px;
+            margin: 0 10px; /* Espaciado entre los botones */
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 150px;
+        }
+        .button-container button:hover {
+            background-color: #d32f2f;
+        }
+        /* Logotipo */
+.logo {
+    margin-top: 10px;
+    width: 100px;
+    margin-bottom: 10px;
+}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body><!-- Logotipo -->
+    <img src="{{ url_for('static', filename='Login/Logo.png') }}" alt="Logotipo Parking" class="logo">
+    <h1>Mapa de Estacionamiento</h1>
+    <!-- Botón de perfil en la parte superior derecha -->
+    <a href="{{ url_for('user_data') }}">
+        <button type="button" class="profile-btn">Perfil</button>
+    </a>
+
+    <!-- Simbología de los colores -->
+    <div class="legend">
+        <div><div class="legend-color available"></div><span>Disponible</span></div>
+        <div><div class="legend-color reserved"></div><span>Apartado</span></div>
+        <div><div class="legend-color occupied"></div><span>Ocupado</span></div>
+        <div><div class="legend-color disabled"></div><span>Discapacitados</span></div>
+        <div><div class="legend-color temporarily-closed"></div><span>Cerrado Temporalmente</span></div>
+        <div><div class="legend-color executive"></div><span>Directivos</span></div>
+    </div>
+
+    <!-- Mapa de estacionamiento -->
+    <div class="parking-lot" id="parkingLot">
+        {% for spot in parking_spots %}
+        <div class="spot {{ spot.estado }}" 
+             data-id="{{ spot.id }}"
+             data-estado="{{ spot.estado }}"
+             onclick="toggleSpot(this)">
+            <div class="tooltip">{{ spot.ubicacion }}</div>
+            {{ spot.ubicacion }}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Totales -->
+    <div class="totals" id="totals">
+        <span>Total: {{ parking_spots|length }}</span>
+        <span>Ocupados: 0</span>
+        <span>Apartados: 0</span>
+        <span>Discapacitados: 0</span>
+        <span>Cerrados: 0</span>
+        <span>Directivos: 0</span>
+    </div>
+
+    <!-- Contenedor para los botones de reservar y salir -->
+    <div class="button-container">
+        <div class="bottom-buttons">
+            <button id="reservarBtn" onclick="verificarReserva()">Reservar</button>
+            <a href="{{ url_for('logout') }}">
+                <button type="button">Salir</button>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const estadosPermitidos = ['available', 'reserved'];
+        const estadosFijos = ['disabled', 'temporarily-closed', 'executive', 'occupied'];
+        const tooltips = {
+            "available": "Disponible",
+            "reserved": "Reservado",
+            "occupied": "Ocupado",
+            "disabled": "Discapacitado",
+            "temporarily-closed": "Cerrado temporalmente",
+            "executive": "Directivo"
+        };
+    
+        let selectedSpot = null;  // Almacena el espacio actualmente reservado
+    
+        function actualizarTotales() {
+            const spots = document.querySelectorAll('.spot');
+            const totals = {
+                total: spots.length,
+                ocupados: 0,
+                apartados: 0,
+                discapacitados: 0,
+                cerrados: 0,
+                directivos: 0
+            };
+    
+            spots.forEach(spot => {
+                const estado = spot.dataset.estado;
+                if (estado === 'occupied') totals.ocupados++;
+                if (estado === 'reserved') totals.apartados++;
+                if (estado === 'disabled') totals.discapacitados++;
+                if (estado === 'temporarily-closed') totals.cerrados++;
+                if (estado === 'executive') totals.directivos++;
+            });
+    
+            document.getElementById('totals').innerHTML = `
+                <span>Total: ${totals.total}</span>
+                <span>Ocupados: ${totals.ocupados}</span>
+                <span>Apartados: ${totals.apartados}</span>
+                <span>Discapacitados: ${totals.discapacitados}</span>
+                <span>Cerrados: ${totals.cerrados}</span>
+                <span>Directivos: ${totals.directivos}</span>
+            `;
+        }
+        async function toggleSpot(element) {
+            const currentState = element.dataset.estado;
+    
+            if (!estadosFijos.includes(currentState)) {
+                try {
+                    // Si hay un espacio reservado previo, lo libera
+                    if (selectedSpot && selectedSpot !== element) {
+                        selectedSpot.className = 'spot available';
+                        selectedSpot.dataset.estado = 'available';
+                        selectedSpot.querySelector('.tooltip').textContent = tooltips['available'];
+                        await actualizarBackend(selectedSpot);
+                    }
+    
+                    // Alternar estado del nuevo espacio
+                    const newState = currentState === 'available' ? 'reserved' : 'available';
+                    element.className = `spot ${newState}`;
+                    element.dataset.estado = newState;
+                    element.querySelector('.tooltip').textContent = tooltips[newState];
+                    
+                    // Actualizar referencia al espacio seleccionado
+                    selectedSpot = newState === 'reserved' ? element : null;
+                    await actualizarBackend(element);
+    
+                    actualizarTotales();
+                    
+                    // Actualizar localStorage
+                    if (selectedSpot) {
+                        localStorage.setItem('selectedSpot', selectedSpot.dataset.id);
+                    } else {
+                        localStorage.removeItem('selectedSpot');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    window.location.reload();
+                }
+            }
+        }
+    
+        async function actualizarBackend(element) {
+            try {
+                const response = await fetch('/actualizar-estado', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: element.dataset.id,
+                        nuevoEstado: element.dataset.estado
+                    })
+                });
+                if (!response.ok) throw new Error('Error en la actualización');
+            } catch (error) {
+                console.error('Error:', error);
+                throw error; // Propagar el error para manejo superior
+            }
+        }
+    
+        // Al cargar la página
+        window.onload = function () {
+            const selectedSpotId = localStorage.getItem('selectedSpot');
+            if (selectedSpotId) {
+                const spot = document.querySelector(`[data-id="${selectedSpotId}"]`);
+                if (spot && spot.dataset.estado === 'reserved') {
+                    selectedSpot = spot;
+                } else {
+                    localStorage.removeItem('selectedSpot');
+                }
+            }
+            actualizarTotales();
+        };
+        
+        function verificarReserva() {
+    if (!selectedSpot) {
+        Swal.fire({
+            icon: 'warning',
+            title: '¡Ups!',
+            text: 'Debes seleccionar un lugar antes de reservar.'
+        });
+        return;
+    }
+
+    window.location.href = "{{ url_for('info') }}";
+}
+
+
+    </script>
+
+</body>
+</html>
